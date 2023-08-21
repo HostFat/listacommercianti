@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lista di Commercianti</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f8ff;
+            font-family: Arial, sans-serif;
+        }
+        .commerciante {
+            display: flex;
+            align-items: center;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            padding: 20px;
+            width: 100%;
+        }
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin-right: 20px;
+        }
+        .bitcoin {
+            border-color: #f90;
+        }
+        .info {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <select id="filtro">
+            <!-- Le opzioni saranno aggiunte dinamicamente -->
+        </select>
+        <button onclick="filtra()">Filtra</button>
+        <div id="listaCommercianti"></div>
+    </div>
+
+    <script>
+        var commercianti = [];
+
+        function filtra() {
+            var filtro = document.getElementById('filtro').value;
+            var commerciantiFiltrati = commercianti.filter(function(commerciante) {
+                return commerciante.prodotti.includes(filtro);
+            });
+            mostraCommercianti(commerciantiFiltrati);
+            ordina();
+        }
+
+        function ordina() {
+            commercianti.sort(function(a, b) {
+                if (a.sistemiPagamento.includes('Bitcoin') && !b.sistemiPagamento.includes('Bitcoin')) {
+                    return -1;
+                }
+                if (!a.sistemiPagamento.includes('Bitcoin') && b.sistemiPagamento.includes('Bitcoin')) {
+                                    return 1;
+                }
+                return 0.5 - Math.random();
+            });
+        }
+
+        function popolaFiltro() {
+            var filtroSelect = document.getElementById('filtro');
+            var prodotti = [];
+            commercianti.forEach(function(commerciante) {
+                commerciante.prodotti.forEach(function(prodotto) {
+                    if (!prodotti.includes(prodotto)) {
+                        prodotti.push(prodotto);
+                    }
+                });
+            });
+            prodotti.forEach(function(prodotto) {
+                var option = document.createElement('option');
+                option.value = prodotto;
+                option.textContent = prodotto;
+                filtroSelect.appendChild(option);
+            });
+        }
+
+        function mostraCommercianti(commercianti) {
+            var listaCommerciantiDiv = document.getElementById('listaCommercianti');
+            listaCommerciantiDiv.innerHTML = '';
+
+            commercianti.forEach(function(commerciante) {
+                var commercianteDiv = document.createElement('div');
+                commercianteDiv.className = 'commerciante';
+
+                if (commerciante.sistemiPagamento.includes('Bitcoin')) {
+                    commercianteDiv.classList.add('bitcoin');
+                }
+
+                var logoImg = document.createElement('img');
+                logoImg.className = 'logo';
+                logoImg.src = commerciante.logo;
+                commercianteDiv.appendChild(logoImg);
+
+                var infoDiv = document.createElement('div');
+
+                var nomeH2 = document.createElement('h2');
+                nomeH2.textContent = commerciante.nome;
+                infoDiv.appendChild(nomeH2);
+
+                var prodottiH3 = document.createElement('h3');
+                prodottiH3.textContent = 'Prodotti: ' + commerciante.prodotti.join(', ');
+                prodottiH3.className = 'info';
+                infoDiv.appendChild(prodottiH3);
+
+                var sistemiPagamentoH3 = document.createElement('h3');
+                sistemiPagamentoH3.textContent = 'Sistemi di Pagamento: ' + commerciante.sistemiPagamento.join(', ');
+                sistemiPagamentoH3.className = 'info';
+                infoDiv.appendChild(sistemiPagamentoH3);
+
+                var indirizzoH3 = document.createElement('h3');
+                indirizzoH3.textContent = 'Indirizzo: ' + commerciante.indirizzo;
+                indirizzoH3.className = 'info';
+                infoDiv.appendChild(indirizzoH3);
+
+                var contattiH3 = document.createElement('h3');
+                contattiH3.textContent = 'Contatti: ' + commerciante.contatti.telefono + ', ' + commerciante.contatti.email;
+                contattiH3.className = 'info';
+                infoDiv.appendChild(contattiH3);
+
+                commercianteDiv.appendChild(infoDiv);
+                listaCommerciantiDiv.appendChild(commercianteDiv);
+            });
+        }
+
+        //fetch('https://www.dropbox.com/scl/fi/tez0t69s35ne1rmm1cze4/comm.csv?rlkey=x40j6ogf1tadh1y41ld20aj2y&dl=0', { mode: 'no-cors'})   
+		fetch('https://raw.githubusercontent.com/HostFat/listacommercianti/main/comm.csv')		
+        .then(response => response.text())
+        .then(data => {
+            var rows = data.split('\n');
+            rows.forEach(row => {
+                var columns = row.split(',');
+                commercianti.push({
+                    nome: columns[0],
+                    logo: columns[1],
+                    prodotti: columns[2].split('|'),
+                    sistemiPagamento: columns[3].split('|'),
+                    indirizzo: columns[4],
+                    contatti: {
+                        telefono: columns[5],
+                        email: columns[6]
+                    }
+                });
+           });
+        
+            // Funzioni per mostrare i commercianti, popolare il filtro, ecc.
+            
+        ordina();
+        popolaFiltro();
+        mostraCommercianti(commercianti);
+        
+    });
+    </script>
+</body>
+</html>
